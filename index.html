@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Subtitle Extractor API</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fab fa-youtube text-danger me-3"></i>
+                YouTube Subtitle Extractor
+            </h1>
+            <p class="lead text-muted">
+                Extract captions and subtitles from YouTube videos in multiple languages
+            </p>
+        </div>
+
+        <!-- API Testing Interface -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-test-tube me-2"></i>
+                            Test API
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="extractForm">
+                            <div class="mb-3">
+                                <label for="videoUrl" class="form-label">YouTube Video URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fab fa-youtube"></i>
+                                    </span>
+                                    <input type="url" class="form-control" id="videoUrl" 
+                                           placeholder="https://www.youtube.com/watch?v=..." required>
+                                </div>
+                                <div class="form-text">
+                                    Supports youtube.com/watch, youtu.be, and youtube.com/embed URLs
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="preferredLanguages" class="form-label">Preferred Languages (Priority Order)</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-select" id="primaryLanguage">
+                                            <option value="hi" selected>Hindi (हिंदी)</option>
+                                            <option value="en">English</option>
+                                            <option value="auto">Auto-generated</option>
+                                            <option value="ar">Arabic</option>
+                                            <option value="bn">Bengali</option>
+                                            <option value="de">German</option>
+                                            <option value="es">Spanish</option>
+                                            <option value="fr">French</option>
+                                            <option value="gu">Gujarati</option>
+                                            <option value="ja">Japanese</option>
+                                            <option value="kn">Kannada</option>
+                                            <option value="ko">Korean</option>
+                                            <option value="ml">Malayalam</option>
+                                            <option value="mr">Marathi</option>
+                                            <option value="pa">Punjabi</option>
+                                            <option value="pt">Portuguese</option>
+                                            <option value="ru">Russian</option>
+                                            <option value="ta">Tamil</option>
+                                            <option value="te">Telugu</option>
+                                            <option value="ur">Urdu</option>
+                                            <option value="zh">Chinese</option>
+                                        </select>
+                                        <div class="form-text">Primary language</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select" id="secondaryLanguage">
+                                            <option value="en" selected>English</option>
+                                            <option value="hi">Hindi (हिंदी)</option>
+                                            <option value="auto">Auto-generated</option>
+                                            <option value="ar">Arabic</option>
+                                            <option value="bn">Bengali</option>
+                                            <option value="de">German</option>
+                                            <option value="es">Spanish</option>
+                                            <option value="fr">French</option>
+                                            <option value="gu">Gujarati</option>
+                                            <option value="ja">Japanese</option>
+                                            <option value="kn">Kannada</option>
+                                            <option value="ko">Korean</option>
+                                            <option value="ml">Malayalam</option>
+                                            <option value="mr">Marathi</option>
+                                            <option value="pa">Punjabi</option>
+                                            <option value="pt">Portuguese</option>
+                                            <option value="ru">Russian</option>
+                                            <option value="ta">Tamil</option>
+                                            <option value="te">Telugu</option>
+                                            <option value="ur">Urdu</option>
+                                            <option value="zh">Chinese</option>
+                                        </select>
+                                        <div class="form-text">Secondary language</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" id="extractBtn">
+                                <i class="fas fa-download me-2"></i>
+                                Extract Subtitles
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="row justify-content-center mt-4" id="loadingIndicator" style="display: none;">
+            <div class="col-lg-8">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Extracting subtitles...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="row justify-content-center mt-4" id="resultsContainer" style="display: none;">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-closed-captioning me-2"></i>
+                            Extracted Subtitles
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard()">
+                            <i class="fas fa-copy me-1"></i>
+                            Copy JSON
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-book me-2"></i>
+                            API Documentation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Endpoint</h6>
+                        <code class="d-block p-2 bg-dark text-light rounded mb-3">
+                            POST /api/extract-subtitles
+                        </code>
+
+                        <h6>Request Body</h6>
+                        <pre class="bg-dark text-light p-3 rounded mb-3"><code>{
+  "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+  "languages": ["hi", "en"]
+}</code></pre>
+
+                        <h6>Request Parameters</h6>
+                        <ul>
+                            <li><code>url</code> (required): YouTube video URL</li>
+                            <li><code>languages</code> (optional): Array of preferred language codes. Default: ["hi", "en"]</li>
+                        </ul>
+
+                        <h6>Response Format</h6>
+                        <pre class="bg-dark text-light p-3 rounded mb-3"><code>{
+  "success": true,
+  "video_id": "VIDEO_ID",
+  "video_url": "https://www.youtube.com/watch?v=VIDEO_ID",
+  "requested_languages": ["hi", "en"],
+  "priority_transcripts_found": 2,
+  "total_transcripts_found": 15,
+  "priority_transcripts": {
+    "priority_hi": {
+      "language": "Hindi (Auto-generated)",
+      "language_code": "hi",
+      "is_generated": true,
+      "text": "पूरा सबटाइटल टेक्स्ट...",
+      "raw_data": [...],
+      "is_priority": true
+    },
+    "priority_en": {
+      "language": "English (Manual)",
+      "language_code": "en", 
+      "is_generated": false,
+      "text": "Full subtitle text...",
+      "raw_data": [...],
+      "is_priority": true
+    }
+  },
+  "all_transcripts": {
+    "priority_hi": {...},
+    "priority_en": {...},
+    "transcript_fr": {...},
+    "transcript_es": {...}
+  }
+}</code></pre>
+
+                        <h6>Supported Languages</h6>
+                        <ul>
+                            <li><strong>English</strong> - Manual and auto-generated</li>
+                            <li><strong>Hindi</strong> - Manual and auto-generated</li>
+                            <li><strong>Auto-generated</strong> - Any available language</li>
+                        </ul>
+
+                        <h6>Error Handling</h6>
+                        <p>The API returns appropriate HTTP status codes and error messages:</p>
+                        <ul>
+                            <li><code>400</code> - Invalid URL or missing URL</li>
+                            <li><code>404</code> - No subtitles found</li>
+                            <li><code>500</code> - Internal server error</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-4 mt-5">
+        <div class="container">
+            <p class="text-muted mb-0">
+                YouTube Subtitle Extractor API - Safe and reliable subtitle extraction
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let lastResponse = null;
+
+        document.getElementById('extractForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('videoUrl').value;
+            const primaryLang = document.getElementById('primaryLanguage').value;
+            const secondaryLang = document.getElementById('secondaryLanguage').value;
+            const languages = [primaryLang, secondaryLang];
+            
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const extractBtn = document.getElementById('extractBtn');
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            extractBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/extract-subtitles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        url: url,
+                        languages: languages
+                    })
+                });
+                
+                const data = await response.json();
+                lastResponse = data;
+                
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                extractBtn.disabled = false;
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    displayError(data.error);
+                }
+                
+            } catch (error) {
+                loadingIndicator.style.display = 'none';
+                extractBtn.disabled = false;
+                displayError('Network error: ' + error.message);
+            }
+        });
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            let html = `
+                <div class="mb-3">
+                    <h6><i class="fas fa-info-circle me-2"></i>Video Information</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Video ID:</span>
+                            <code>${data.video_id}</code>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Priority Transcripts:</span>
+                            <span class="badge bg-primary">${data.priority_transcripts_found || 0}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total Transcripts:</span>
+                            <span class="badge bg-success">${data.total_transcripts_found || 0}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Requested Languages:</span>
+                            <span class="text-muted">${data.requested_languages ? data.requested_languages.join(', ') : 'Default'}</span>
+                        </li>
+                    </ul>
+                </div>
+            `;
+            
+            // Display priority transcripts first
+            if (data.priority_transcripts && Object.keys(data.priority_transcripts).length > 0) {
+                html += `<div class="mb-4">
+                    <h5><i class="fas fa-star text-warning me-2"></i>Priority Transcripts</h5>
+                </div>`;
+                
+                for (const [key, transcript] of Object.entries(data.priority_transcripts)) {
+                    html += `
+                        <div class="mb-4">
+                            <h6>
+                                <i class="fas fa-language me-2"></i>
+                                ${transcript.language}
+                                ${transcript.is_generated ? '<span class="badge bg-info ms-2">Auto-generated</span>' : '<span class="badge bg-success ms-2">Manual</span>'}
+                                <span class="badge bg-warning ms-2">Priority</span>
+                            </h6>
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleFullText('priority_${key}')">
+                                            <i class="fas fa-expand me-1"></i>Show Full Text
+                                        </button>
+                                    </div>
+                                    <div id="priority_${key}_preview" class="card-text">
+                                        ${transcript.text.length > 300 ? transcript.text.substring(0, 300) + '...' : transcript.text}
+                                    </div>
+                                    <div id="priority_${key}_full" class="card-text" style="display: none;">
+                                        ${transcript.text}
+                                    </div>
+                                    <small class="text-muted">Language Code: ${transcript.language_code} | Characters: ${transcript.text.length}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Display other available transcripts
+            if (data.all_transcripts && Object.keys(data.all_transcripts).length > Object.keys(data.priority_transcripts || {}).length) {
+                html += `<div class="mb-4 mt-4">
+                    <h5><i class="fas fa-list me-2"></i>All Available Transcripts</h5>
+                </div>`;
+                
+                for (const [key, transcript] of Object.entries(data.all_transcripts)) {
+                    if (!transcript.is_priority) {
+                        html += `
+                            <div class="mb-4">
+                                <h6>
+                                    <i class="fas fa-language me-2"></i>
+                                    ${transcript.language}
+                                    ${transcript.is_generated ? '<span class="badge bg-info ms-2">Auto-generated</span>' : '<span class="badge bg-success ms-2">Manual</span>'}
+                                </h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleFullText('${key}')">
+                                                <i class="fas fa-expand me-1"></i>Show Full Text
+                                            </button>
+                                        </div>
+                                        <div id="${key}_preview" class="card-text">
+                                            ${transcript.text.length > 300 ? transcript.text.substring(0, 300) + '...' : transcript.text}
+                                        </div>
+                                        <div id="${key}_full" class="card-text" style="display: none;">
+                                            ${transcript.text}
+                                        </div>
+                                        <small class="text-muted">Language Code: ${transcript.language_code} | Characters: ${transcript.text.length}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            resultsContent.innerHTML = html;
+            resultsContainer.style.display = 'block';
+        }
+        
+        function toggleFullText(transcriptId) {
+            const preview = document.getElementById(transcriptId + '_preview');
+            const full = document.getElementById(transcriptId + '_full');
+            const button = event.target.closest('button');
+            
+            if (full.style.display === 'none') {
+                preview.style.display = 'none';
+                full.style.display = 'block';
+                button.innerHTML = '<i class="fas fa-compress me-1"></i>Show Preview';
+            } else {
+                preview.style.display = 'block';
+                full.style.display = 'none';
+                button.innerHTML = '<i class="fas fa-expand me-1"></i>Show Full Text';
+            }
+        }
+
+        function displayError(error) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            resultsContent.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Error:</strong> ${error}
+                </div>
+            `;
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            if (lastResponse) {
+                navigator.clipboard.writeText(JSON.stringify(lastResponse, null, 2)).then(() => {
+                    // Show success message
+                    const btn = event.target.closest('button');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+/* Custom styles for YouTube Subtitle Extractor */
+
+/* Smooth transitions for better UX */
+.card {
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Code blocks styling */
+pre {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+code {
+    word-break: break-all;
+}
+
+/* Loading animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Results container animations */
+#resultsContainer {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form styling */
+.input-group-text {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+/* Button animations */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Footer styling */
+footer {
+    border-top: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+}
+
+/* Custom scrollbar for code blocks */
+pre::-webkit-scrollbar {
+    width: 8px;
+}
+
+pre::-webkit-scrollbar-track {
+    background: var(--bs-dark);
+}
+
+pre::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-light);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Badge styling */
+.badge {
+    font-size: 0.7em;
+}
+
+/* List group styling */
+.list-group-item {
+    background-color: transparent;
+    border-color: var(--bs-border-color);
+}
+
+/* Card header styling */
+.card-header {
+    background-color: var(--bs-secondary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Success state styling */
+.btn-success {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
